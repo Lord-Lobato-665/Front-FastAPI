@@ -28,7 +28,7 @@
 
 <script lang="ts" setup>
 import { defineProps } from 'vue';
-import { LayoutDashboard, Brush, LineChart, Activity, TreeDeciduous, BarChart3 } from 'lucide-vue-next';
+import { LayoutDashboard, Brush, LineChart, Activity, TreeDeciduous, BarChart3, AlignHorizontalJustifyCenter } from 'lucide-vue-next';
 
 defineProps<{
   collapsed: boolean;
@@ -42,5 +42,7 @@ const menuItems = [
   { name: 'LogisticRegression', label: 'Regresión Logística', path: '/logistic-regression', icon: Activity },
   { name: 'Trees', label: 'Árboles', path: '/trees', icon: TreeDeciduous },
   { name: 'AdvancedCharts', label: 'Graficación Avanzada', path: '/advanced-charts', icon: BarChart3 },
+  { name: 'Boxplot', label: 'Boxplot', path: '/boxplot', icon: AlignHorizontalJustifyCenter },
+
 ];
 </script>
