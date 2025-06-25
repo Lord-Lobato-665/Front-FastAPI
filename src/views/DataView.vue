@@ -58,7 +58,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import Header from '../components/Header.vue';
 import Paginator from '../components/Paginator.vue';
 
@@ -68,6 +68,7 @@ const currentPage = ref(1);
 const rowsPerPage = 7;
 const uploadMessage = ref('');
 const uploadSuccess = ref(false);
+const isLoading = ref(false);
 
 const totalPages = computed(() => {
   return Math.ceil(tableData.value.length / rowsPerPage);
@@ -76,6 +77,37 @@ const totalPages = computed(() => {
 const paginatedData = computed(() => {
   const start = (currentPage.value - 1) * rowsPerPage;
   return tableData.value.slice(start, start + rowsPerPage);
+});
+
+const loadCSVData = async () => {
+  isLoading.value = true;
+  try {
+    const response = await fetch('http://127.0.0.1:8000/api/v1/read/csv');
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Error al cargar el CSV');
+    }
+
+    const data = await response.json();
+    
+    if (data.length > 0) {
+      headers.value = Object.keys(data[0]);
+      tableData.value = data;
+      uploadMessage.value = '';
+    } else {
+      uploadMessage.value = 'El CSV está vacío';
+    }
+  } catch (error) {
+    uploadMessage.value = error instanceof Error ? error.message : 'Error desconocido';
+    uploadSuccess.value = false;
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  loadCSVData();
 });
 
 const handleFileUpload = async (e: Event) => {

@@ -40,7 +40,7 @@ const menuItems = [
   { name: 'DataCleaning', label: 'Limpieza de Datos', path: '/cleaning', icon: Brush },
   { name: 'LinearRegression', label: 'Regresión Lineal', path: '/linear-regression', icon: LineChart },
   { name: 'LogisticRegression', label: 'Regresión Logística', path: '/logistic-regression', icon: Activity },
-  { name: 'Trees', label: 'Árboles', path: '/trees', icon: TreeDeciduous },
+  { name: 'Kmeans', label: 'Grupos y Pertenencia', path: '/kmeans', icon: TreeDeciduous },
   { name: 'AdvancedCharts', label: 'Graficación Avanzada', path: '/advanced-charts', icon: BarChart3 },
   { name: 'Boxplot', label: 'Boxplot', path: '/boxplot', icon: AlignHorizontalJustifyCenter },
 
