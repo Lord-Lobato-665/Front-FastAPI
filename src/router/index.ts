@@ -5,6 +5,7 @@ import LinearRegression from '../views/LinearRegression.vue';
 import LogisticRegression from '../views/LogisticRegression.vue';
 import Trees from '../views/Trees.vue';
 import AdvancedCharts from '../views/AdvancedCharts.vue';
+import Kmeans from '../views/KmeansView.vue';
 
 const routes = [
   { path: '/', name: 'DataView', component: DataView },
@@ -13,6 +14,7 @@ const routes = [
   { path: '/logistic-regression', name: 'LogisticRegression', component: LogisticRegression },
   { path: '/trees', name: 'Trees', component: Trees },
   { path: '/advanced-charts', name: 'AdvancedCharts', component: AdvancedCharts },
+  { path: '/kmeans', name: 'Kmeans', component: Kmeans }
 ];
 
 const router = createRouter({
