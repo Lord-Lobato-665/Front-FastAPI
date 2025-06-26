@@ -241,7 +241,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { mentalHealthService } from '../services/MentalHealth'
-import type { MentalHealthPrediction } from '../interface/MentalHealthPrediction'
+import type { MentalHealthPrediction } from '../types/MentalHealthPrediction'
 
 const usageHours = ref<number>(3)
 const predictionData = ref<MentalHealthPrediction | null>(null)

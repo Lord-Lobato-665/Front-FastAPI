@@ -1,318 +1,312 @@
-<!-- src/views/RegressionAnalysisView.vue -->
 <template>
-  <div class="min-h-screen bg-gray-50 p-4 md:p-8">
-    <div class="max-w-7xl mx-auto space-y-8">
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 p-6">
+    <div class="mx-auto bg-white rounded-xl shadow-2xl overflow-hidden">
       <!-- Header -->
-      <div class="text-center">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Análisis de Regresión</h1>
-        <p class="text-lg text-gray-600">Explora relaciones entre variables y realiza predicciones</p>
+      <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 p-6 text-white">
+        <h2 class="text-3xl font-bold">Regresión Lineal Multivariable</h2>
+        <p class="text-indigo-100 mt-2">Predice valores basados en múltiples variables</p>
       </div>
 
-      <!-- CSV Columns Section -->
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold text-gray-800">Columnas Disponibles</h2>
-          <button @click="fetchColumns" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-            Actualizar
+      <div class="p-6 space-y-8">
+        <!-- Selección de variables -->
+        <div>
+          <h3 class="text-xl font-semibold text-gray-800 mb-4">Selecciona variables</h3>
+
+          <!-- Variable objetivo -->
+          <div class="mb-6">
+            <label class="block text-lg font-medium text-gray-700 mb-2">Variable a predecir (objetivo):</label>
+            <select v-model="targetVariable" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+              <option v-for="col in targetOptions" :key="col" :value="col">{{ columnTranslations[col] || col }}</option>
+            </select>
+          </div>
+
+          <!-- Variables predictoras -->
+          <div>
+            <label class="block text-lg font-medium text-gray-700 mb-2">Variables predictoras (selecciona 2):</label>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
+              <div v-for="col in predictorOptions.filter(c => c !== targetVariable)" :key="col"
+                @click="togglePredictor(col)"
+                :class="[
+                  'border-2 rounded-lg p-3 cursor-pointer transition-all duration-200',
+                  predictors.includes(col)
+                    ? 'border-indigo-500 bg-indigo-50 shadow-md'
+                    : predictors.length >= 2
+                      ? 'border-gray-200 opacity-50 cursor-not-allowed'
+                      : 'border-gray-200 hover:border-indigo-300 hover:bg-indigo-50'
+                ]">
+                <div class="flex items-center justify-between">
+                  <span class="font-medium text-gray-800">{{ columnTranslations[col] || col }}</span>
+                  <input type="checkbox" :checked="predictors.includes(col)" class="hidden" />
+                  <span v-if="predictors.includes(col)" class="text-indigo-600">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Valores de entrada -->
+          <div v-if="predictors.length > 0" class="mt-6">
+            <h4 class="text-lg font-medium text-gray-700 mb-3">Ingresa los valores:</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div v-for="col in predictors" :key="'input-'+col" class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ columnTranslations[col] || col }}</label>
+                <input 
+                  type="number" 
+                  v-model.number="inputValues[col]" 
+                  :step="getStep(col)"
+                  :min="getMin(col)"
+                  :max="getMax(col)"
+                  @change="validateInput(col)"
+                  class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" 
+                  :placeholder="getPlaceholder(col)"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botón de predicción -->
+        <div class="pt-4">
+          <button @click="predict" :disabled="!isValid || isLoading"
+            :class="[
+              'w-full md:w-auto px-8 py-3 rounded-xl font-semibold text-lg shadow-lg transition-all duration-300',
+              isValid && !isLoading
+                ? 'bg-gradient-to-r from-indigo-600 to-indigo-800 hover:from-indigo-700 hover:to-indigo-900 text-white'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            ]">
+            <span v-if="isLoading" class="flex items-center justify-center gap-2">
+              <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Procesando...
+            </span>
+            <span v-else class="flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+              Predecir
+            </span>
           </button>
         </div>
-        
-        <div v-if="loadingColumns" class="flex justify-center py-8">
-          <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-        
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div v-for="column in csvColumns" :key="column.columna" 
-               class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-            <h3 class="font-medium text-gray-800 truncate">{{ column.columna }}</h3>
-            <p class="text-sm text-gray-500 mt-1">Tipo: {{ column.tipo }}</p>
-          </div>
-        </div>
-      </div>
 
-      <!-- Prediction Section -->
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Predicción Lineal</h2>
-        
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <!-- Form -->
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Variable Objetivo</label>
-              <select v-model="predictionForm.target" class="w-full p-2 border border-gray-300 rounded-md">
-                <option v-for="col in numericColumns" :key="col" :value="col">{{ col }}</option>
-              </select>
-            </div>
-            
-            <div v-for="(value, feature) in predictionForm.features" :key="feature" class="space-y-1">
-              <label class="block text-sm font-medium text-gray-700 mb-1">{{ feature }}</label>
-              <input v-model.number="predictionForm.features[feature]" type="number" step="0.1"
-                     class="w-full p-2 border border-gray-300 rounded-md" />
-            </div>
-            
-            <div class="flex justify-between items-center">
-              <button @click="addFeature" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                + Añadir Variable
-              </button>
-              
-              <button @click="predict" :disabled="isPredicting"
-                      class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
-                {{ isPredicting ? 'Calculando...' : 'Predecir' }}
-              </button>
-            </div>
-          </div>
-          
-          <!-- Results -->
-          <div v-if="predictionResult" class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-800 mb-2">Resultado</h3>
-            <p class="text-gray-700 mb-3">{{ predictionResult.resumen }}</p>
-            
-            <div class="grid grid-cols-2 gap-3 mb-3">
-              <div>
-                <p class="text-sm text-gray-500">Variable objetivo</p>
-                <p class="font-medium">{{ predictionForm.target }}</p>
-              </div>
-              <div>
-                <p class="text-sm text-gray-500">Valor predicho</p>
-                <p class="font-medium">{{ predictionResult.prediccion.toFixed(2) }}</p>
-              </div>
-            </div>
-            
-            <button @click="showPredictionPlot" 
-                    class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              Ver Gráfica
-            </button>
+        <!-- Errores -->
+        <div v-if="error" class="p-4 bg-red-50 border-l-4 border-red-500 rounded">
+          <div class="flex items-center gap-2 text-red-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>{{ error }}</span>
           </div>
         </div>
-      </div>
 
-      <!-- Social Media Analysis -->
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Análisis de Redes Sociales</h2>
-        
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <!-- Filters -->
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Rango de Edad</label>
-              <select v-model="analysisFilters.age_range" class="w-full p-2 border border-gray-300 rounded-md">
-                <option value="18-25">18-25 años</option>
-                <option value="26-35">26-35 años</option>
-                <option value="36-45">36-45 años</option>
-              </select>
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">País (opcional)</label>
-              <input v-model="analysisFilters.country" type="text" 
-                     class="w-full p-2 border border-gray-300 rounded-md" />
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Nivel Académico</label>
-              <select v-model="analysisFilters.academic_level" class="w-full p-2 border border-gray-300 rounded-md">
-                <option :value="undefined">Todos</option>
-                <option value="High School">Secundaria</option>
-                <option value="Undergraduate">Universitario</option>
-                <option value="Graduate">Posgrado</option>
-              </select>
-            </div>
-            
-            <button @click="fetchAnalysis" :disabled="isAnalyzing"
-                    class="w-full py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50">
-              {{ isAnalyzing ? 'Analizando...' : 'Obtener Análisis' }}
-            </button>
-          </div>
-          
-          <!-- Results -->
-          <div v-if="analysisData" class="lg:col-span-2 space-y-4">
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                <p class="text-sm text-gray-500">Horas de uso promedio</p>
-                <p class="text-xl font-semibold">{{ analysisData.summary.avg_daily_usage_hours.toFixed(1) }}</p>
+        <!-- Resultados -->
+        <div v-if="result" class="mt-8 space-y-6 animate-fade-in">
+          <div class="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-100 shadow-sm">
+            <h3 class="text-2xl font-bold text-indigo-800 mb-4">Resultado de la predicción</h3>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+              <!-- Predicción -->
+              <div class="bg-white p-4 rounded-lg border border-indigo-100 shadow-xs">
+                <h4 class="font-semibold text-gray-700 flex items-center gap-2 mb-2">
+                  <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                  </svg>
+                  Valor predicho
+                </h4>
+                <p class="text-3xl font-bold text-indigo-700">{{ result.prediccion.toFixed(2) }}</p>
               </div>
-              
-              <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                <p class="text-sm text-gray-500">Afecta rendimiento</p>
-                <p class="text-xl font-semibold">{{ analysisData.summary.affects_performance_percentage.toFixed(1) }}%</p>
-              </div>
-              
-              <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                <p class="text-sm text-gray-500">Salud mental</p>
-                <p class="text-xl font-semibold">{{ analysisData.summary.avg_mental_health_score.toFixed(1) }}/10</p>
+
+              <!-- Resumen -->
+              <div class="bg-white p-4 rounded-lg border border-indigo-100 shadow-xs">
+                <h4 class="font-semibold text-gray-700 flex items-center gap-2 mb-2">
+                  <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  Interpretación
+                </h4>
+                <p class="text-gray-700">{{ result.resumen }}</p>
               </div>
             </div>
-            
-            <div>
-              <h3 class="font-medium text-gray-800 mb-2">Plataformas más usadas</h3>
+
+            <!-- Variables utilizadas -->
+            <div class="mb-6">
+              <h4 class="font-semibold text-gray-700 mb-2">Variables utilizadas:</h4>
               <div class="flex flex-wrap gap-2">
-                <span v-for="(count, platform) in analysisData.platform_analysis.top_platforms" :key="platform"
-                      class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                  {{ platform.replace('Most_Used_Platform_', '') }}: {{ count }}
+                <span v-for="col in result.features_utilizados" :key="'used-'+col"
+                  class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">
+                  {{ columnTranslations[col] || col }}
                 </span>
               </div>
             </div>
-            
-            <button @click="showCorrelationPlot" 
-                    class="text-sm text-purple-600 hover:text-purple-800 flex items-center gap-1 mt-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              Ver Correlaciones
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Plot Modal -->
-    <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
-        <div class="p-4 border-b flex justify-between items-center">
-          <h3 class="text-lg font-semibold">{{ modalTitle }}</h3>
-          <button @click="closeModal" class="text-gray-500 hover:text-gray-700">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div class="p-4">
-          <img :src="currentPlotUrl" alt="Gráfica" class="w-full h-auto" />
+            <!-- Gráfico -->
+            <div class="mt-6">
+              <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                <img :src="plotUrl" alt="Gráfico de regresión" class="w-full h-auto rounded-lg border border-gray-200" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { linearRegressionService } from '../services/LRegression';
-import type { CsvColumnInfo, LinearMultiFeatureResponse, SocialMediaAnalysis } from '../interface/LRegressionInterface';
 
+const availableColumns = ref<string[]>([]);
+const targetOptions = ref<string[]>([]);       
+const predictorOptions = ref<string[]>([]);   
+const columnTranslations: Record<string, string> = {
+  Age: 'Edad',
+  Avg_Daily_Usage_Hours: 'Horas de uso diario promedio de redes sociales',
+  Mental_Health_Score: 'Puntuación de salud mental',
+  Sleep_Hours_Per_Night: 'Horas de sueño por noche',
+  Addicted_Score: 'Puntuación de adicción',
+  Conflicts_Over_Social_Media: 'Conflictos por redes sociales',
+};
 
-// CSV Columns
-const csvColumns = ref<CsvColumnInfo[]>([]);
-const loadingColumns = ref(false);
+const variableRanges: Record<string, { min: number, max: number, step: number }> = {
+  Age: { min: 1, max: 100, step: 1 },
+  Avg_Daily_Usage_Hours: { min: 0, max: 24, step: 0.5 },
+  Mental_Health_Score: { min: 1, max: 10, step: 0.1 },
+  Sleep_Hours_Per_Night: { min: 0, max: 24, step: 0.5 },
+  Addicted_Score: { min: 1, max: 10, step: 0.1 },
+  Conflicts_Over_Social_Media: { min: 0, max: 10, step: 1 },
+};
 
-// Prediction
-const predictionForm = ref({
-  features: {} as Record<string, number>,
-  target: ''
+const targetVariable = ref<string>('');
+const predictors = ref<string[]>([]);
+const inputValues = ref<Record<string, number>>({});
+const result = ref<any>(null);
+const plotUrl = ref<string | null>(null);
+const isLoading = ref(false);
+const error = ref<string | null>(null);
+
+const isValid = computed(() => {
+  return targetVariable.value !== '' &&
+    predictors.value.length === 2 &&
+    Object.values(inputValues.value).every(val => val !== undefined && !isNaN(val));
 });
-const predictionResult = ref<LinearMultiFeatureResponse | null>(null);
-const isPredicting = ref(false);
 
-// Analysis
-const analysisFilters = ref({
-  age_range: '18-25',
-  country: undefined as string | undefined,
-  academic_level: undefined as string | undefined
-});
-const analysisData = ref<SocialMediaAnalysis | null>(null);
-const isAnalyzing = ref(false);
+const getStep = (col: string) => variableRanges[col]?.step || 1;
+const getMin = (col: string) => variableRanges[col]?.min || 0;
+const getMax = (col: string) => variableRanges[col]?.max || 100;
+const getPlaceholder = (col: string) => {
+  const range = variableRanges[col];
+  return range ? `${range.min}-${range.max}` : '';
+};
 
-// Plots
-const showModal = ref(false);
-const modalTitle = ref('');
-const currentPlotUrl = ref('');
+const validateInput = (col: string) => {
+  if (!inputValues.value[col] || isNaN(inputValues.value[col])) {
+    inputValues.value[col] = variableRanges[col]?.min || 0;
+    return;
+  }
 
-// Computed
-const numericColumns = computed(() => {
-  return csvColumns.value
-    .filter(col => col.tipo.includes('int') || col.tipo.includes('float'))
-    .map(col => col.columna);
-});
-
-// Methods
-const fetchColumns = async () => {
-  try {
-    loadingColumns.value = true;
-    csvColumns.value = await linearRegressionService.getCsvColumns();
-    if (numericColumns.value.length > 0) {
-      predictionForm.value.target = numericColumns.value[0];
-    }
-  } catch (error) {
-    console.error('Error fetching columns:', error);
-  } finally {
-    loadingColumns.value = false;
+  const range = variableRanges[col];
+  if (!range) return;
+  if (inputValues.value[col] < range.min) {
+    inputValues.value[col] = range.min;
+  } else if (inputValues.value[col] > range.max) {
+    inputValues.value[col] = range.max;
+  }
+  if (range.step < 1) {
+    const decimals = range.step.toString().split('.')[1]?.length || 0;
+    inputValues.value[col] = parseFloat(inputValues.value[col].toFixed(decimals));
+  } else {
+    inputValues.value[col] = Math.round(inputValues.value[col]);
   }
 };
 
-const addFeature = () => {
-  const availableColumns = numericColumns.value.filter(
-    col => col !== predictionForm.value.target && !predictionForm.value.features[col]
-  );
-  if (availableColumns.length > 0) {
-    predictionForm.value.features[availableColumns[0]] = 0;
+const filterNumericColumns = (columns: string[]) => {
+  const numericCols = [
+    'Age',
+    'Avg_Daily_Usage_Hours',
+    'Mental_Health_Score',
+    'Sleep_Hours_Per_Night',
+    'Addicted_Score',
+    'Conflicts_Over_Social_Media',
+  ];
+  return columns.filter(col => numericCols.includes(col));
+};
+
+const fetchColumns = async () => {
+  try {
+    const response = await fetch('http://localhost:8000/api/v1/predict/csv-heads');
+    const data = await response.json();
+    availableColumns.value = data.columnas.map((col: any) => col.columna);
+
+    const allNumeric = filterNumericColumns(availableColumns.value);
+    targetOptions.value = allNumeric.filter(col => col !== 'Age'); 
+    predictorOptions.value = allNumeric;
+
+    if (targetOptions.value.length > 0) {
+      targetVariable.value = targetOptions.value[0];
+    }
+  } catch (err) {
+    error.value = 'Error al cargar las columnas disponibles';
+    console.error(err);
+  }
+};
+
+const togglePredictor = (col: string) => {
+  if (predictors.value.includes(col)) {
+    predictors.value = predictors.value.filter(c => c !== col);
+    delete inputValues.value[col];
+  } else if (predictors.value.length < 2) {
+    predictors.value.push(col);
+    inputValues.value[col] = variableRanges[col]?.min || 0;
   }
 };
 
 const predict = async () => {
+  isLoading.value = true;
+  error.value = null;
+  result.value = null;
+  plotUrl.value = null;
+
   try {
-    isPredicting.value = true;
-    predictionResult.value = await linearRegressionService.predictMultipleFeatures({
-      features: predictionForm.value.features,
-      target: predictionForm.value.target
-    });
-  } catch (error) {
-    console.error('Prediction error:', error);
+    predictors.value.forEach(col => validateInput(col));
+    const payload = {
+      features: predictors.value.reduce((acc, col) => {
+        acc[col] = inputValues.value[col];
+        return acc;
+      }, {} as Record<string, number>),
+      target: targetVariable.value
+    };
+
+    result.value = await linearRegressionService.predictMultipleFeatures(payload);
+    plotUrl.value = await linearRegressionService.getMultipleFeaturesPlot();
+  } catch (err) {
+    error.value = 'Error al realizar la predicción';
+    console.error(err);
   } finally {
-    isPredicting.value = false;
+    isLoading.value = false;
   }
 };
 
-const fetchAnalysis = async () => {
-  try {
-    isAnalyzing.value = true;
-    analysisData.value = await linearRegressionService.getSocialMediaAnalysis({
-      age_range: analysisFilters.value.age_range,
-      country: analysisFilters.value.country,
-      academic_level: analysisFilters.value.academic_level
-    });
-  } catch (error) {
-    console.error('Analysis error:', error);
-  } finally {
-    isAnalyzing.value = false;
-  }
-};
-
-const showPredictionPlot = async () => {
-  try {
-    modalTitle.value = 'Gráfica de Predicción';
-    currentPlotUrl.value = await linearRegressionService.getMultipleFeaturesPlot();
-    showModal.value = true;
-  } catch (error) {
-    console.error('Error loading plot:', error);
-  }
-};
-
-const showCorrelationPlot = async () => {
-  try {
-    modalTitle.value = 'Correlaciones';
-    currentPlotUrl.value = await linearRegressionService.getCorrelationChart();
-    showModal.value = true;
-  } catch (error) {
-    console.error('Error loading correlation:', error);
-  }
-};
-
-const closeModal = () => {
-  showModal.value = false;
-  currentPlotUrl.value = '';
-};
-
-// Lifecycle
-onMounted(() => {
-  fetchColumns();
-  fetchAnalysis();
-});
+onMounted(fetchColumns);
 </script>
 
 <style scoped>
-/* Custom styles if needed */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 </style>

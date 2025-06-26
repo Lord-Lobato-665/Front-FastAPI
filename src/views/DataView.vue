@@ -115,7 +115,7 @@ const columnTranslations: Record<string, string> = {
 const loadCSVData = async () => {
   isLoading.value = true;
   try {
-    const response = await fetch('http://127.0.0.1:8001/api/v1/read/csv');
+    const response = await fetch('http://127.0.0.1:8000/api/v1/read/csv');
     
     if (!response.ok) {
       const error = await response.json();
@@ -158,7 +158,7 @@ const handleFileUpload = async (e: Event) => {
   formData.append('file', file);
 
   try {
-    const response = await fetch('http://127.0.0.1:8001/api/v1/upload/csv', {
+    const response = await fetch('http://127.0.0.1:8000/api/v1/upload/csv', {
       method: 'POST',
       body: formData,
     });
