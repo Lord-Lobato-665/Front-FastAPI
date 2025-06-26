@@ -19,6 +19,7 @@
         </p>
       </div>
 
+      <!-- Primera fila: Input y Resultados -->
       <div class="grid lg:grid-cols-2 gap-8">
         <!-- Input -->
         <div class="bg-white/90 backdrop-blur-sm border border-gray-100 rounded-2xl shadow-lg overflow-hidden">
@@ -65,57 +66,6 @@
               </span>
             </button>
 
-            <!-- Resultado -->
-            <div v-if="predictionData !== null" class="mt-4 space-y-6 animate-fade-in">
-              <div :class="[
-                'p-6 rounded-xl transition-all duration-500 shadow-inner',
-                getHealthStatus(predictionData.prediccion).bg
-              ]">
-                <div class="flex items-start gap-4">
-                  <div :class="['p-2 rounded-lg', getHealthStatus(predictionData.prediccion).iconBg]">
-                    <svg :class="['w-6 h-6', getHealthStatus(predictionData.prediccion).color]" fill="none" stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div class="flex-1">
-                    <h3 class="font-semibold text-lg text-gray-900 mb-1">Resultados del Análisis</h3>
-                    <div class="flex items-baseline gap-2 mb-3">
-                      <span class="font-bold text-3xl">{{ predictionData.prediccion.toFixed(1) }}</span>
-                      <span class="text-gray-500">/10</span>
-                      <span :class="['ml-2 px-2 py-1 rounded-full text-xs font-semibold', getHealthStatus(predictionData.prediccion).badge]">
-                        {{ predictionData.nivel_riesgo }}
-                      </span>
-                    </div>
-                    
-                    <p class="text-gray-700 mb-4 leading-relaxed">
-                      {{ predictionData.interpretacion.descripcion }}
-                    </p>
-                    
-                    <div class="flex items-center gap-2 mb-3">
-                      <span class="text-sm text-gray-600">Estado:</span>
-                      <span :class="['font-semibold', getHealthStatus(predictionData.prediccion).color]">
-                        {{ getHealthStatus(predictionData.prediccion).status }}
-                      </span>
-                    </div>
-
-                    <div class="mb-5">
-                      <div class="flex justify-between text-sm text-gray-500 mb-1">
-                        <span>Bajo riesgo</span>
-                        <span>Alto riesgo</span>
-                      </div>
-                      <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                        <div
-                          :class="['h-full rounded-full transition-all duration-1000', getHealthStatus(predictionData.prediccion).progressColor]"
-                          :style="{ width: `${(predictionData.prediccion / 10) * 100}%` }"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <div v-if="error" class="p-4 bg-red-50 border border-red-200 rounded-xl animate-fade-in flex items-start gap-3">
               <div class="flex-shrink-0 mt-0.5">
                 <div class="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center">
@@ -129,7 +79,111 @@
           </div>
         </div>
 
-        <!-- Chart -->
+        <!-- Resultados -->
+        <div class="bg-white/90 backdrop-blur-sm border border-gray-100 rounded-2xl shadow-lg overflow-hidden">
+          <div class="p-6 pb-4 border-b border-gray-100">
+            <h2 class="flex items-center gap-3 text-2xl font-semibold mb-2 text-gray-800">
+              <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Tus resultados
+            </h2>
+            <p class="text-base text-gray-600">Evaluación de tu bienestar digital</p>
+          </div>
+
+          <div v-if="predictionData !== null" class="px-6 pb-6 space-y-6 animate-fade-in">
+            <!-- Salud Mental -->
+            <div :class="['p-6 rounded-xl shadow-inner', getHealthStatus(predictionData.prediccion).bg]">
+              <div class="flex items-start gap-4">
+                <div :class="['p-2 rounded-lg', getHealthStatus(predictionData.prediccion).iconBg]">
+                  <svg :class="['w-6 h-6', getHealthStatus(predictionData.prediccion).color]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <h3 class="font-semibold text-lg text-gray-900 mb-1">Salud Mental</h3>
+                  <div class="flex items-baseline gap-2 mb-3">
+                    <span class="font-bold text-3xl">{{ predictionData.prediccion.toFixed(1) }}</span>
+                    <span class="text-gray-500">/10</span>
+                    <span :class="['ml-2 px-2 py-1 rounded-full text-xs font-semibold', getHealthStatus(predictionData.prediccion).badge]">
+                      {{ predictionData.nivel_riesgo }}
+                    </span>
+                  </div>
+                  
+                  <p class="text-gray-700 mb-4 leading-relaxed">
+                    {{ predictionData.interpretacion.evaluacion }}
+                  </p>
+                  
+                  <div class="mb-5">
+                    <div class="flex justify-between text-sm text-gray-500 mb-1">
+                      <span>Saludable</span>
+                      <span>Preocupante</span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                      <div
+                        :class="['h-full rounded-full transition-all duration-1000', getHealthStatus(predictionData.prediccion).progressColor]"
+                        :style="{ width: `${(predictionData.prediccion / 10) * 100}%` }"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Adicción Digital -->
+            <div :class="['p-6 rounded-xl shadow-inner', getAddictionStatus(predictionData.addicted_score.puntaje).bg]">
+              <div class="flex items-start gap-4">
+                <div :class="['p-2 rounded-lg', getAddictionStatus(predictionData.addicted_score.puntaje).iconBg]">
+                  <svg :class="['w-6 h-6', getAddictionStatus(predictionData.addicted_score.puntaje).color]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <h3 class="font-semibold text-lg text-gray-900 mb-1">Adicción Digital</h3>
+                  <div class="flex items-baseline gap-2 mb-3">
+                    <span class="font-bold text-3xl">{{ predictionData.addicted_score.puntaje.toFixed(1) }}</span>
+                    <span class="text-gray-500">/10</span>
+                    <span :class="['ml-2 px-2 py-1 rounded-full text-xs font-semibold', getAddictionStatus(predictionData.addicted_score.puntaje).badge]">
+                      {{ predictionData.addicted_score.nivel }}
+                    </span>
+                  </div>
+                  
+                  <p class="text-gray-700 mb-4 leading-relaxed">
+                    {{ predictionData.addicted_score.interpretacion }}
+                  </p>
+                  
+                  <div class="mb-5">
+                    <div class="flex justify-between text-sm text-gray-500 mb-1">
+                      <span>Baja adicción</span>
+                      <span>Alta adicción</span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                      <div
+                        :class="['h-full rounded-full transition-all duration-1000', getAddictionStatus(predictionData.addicted_score.puntaje).progressColor]"
+                        :style="{ width: `${(predictionData.addicted_score.puntaje / 10) * 100}%` }"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="px-6 pb-6">
+            <div class="bg-gray-50 rounded-xl p-8 text-center">
+              <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 class="text-gray-600 font-medium mb-1">Sin resultados aún</h3>
+              <p class="text-gray-400 text-sm">Ingresa tus horas de uso y haz clic en "Analizar mi bienestar"</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Segunda fila: Gráfico -->
+      <div class="mt-8">
         <div class="bg-white/90 backdrop-blur-sm border border-gray-100 rounded-2xl shadow-lg overflow-hidden">
           <div class="p-6 pb-4 border-b border-gray-100">
             <h2 class="flex items-center gap-3 text-2xl font-semibold mb-2 text-gray-800">
@@ -167,7 +221,7 @@
         </div>
       </div>
 
-      <!-- Sección de recomendaciones  -->
+      <!-- Sección de recomendaciones -->
       <div v-if="predictionData !== null" class="mt-8 animate-fade-in">
         <!-- Tarjeta de recomendaciones -->
         <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl overflow-hidden border border-blue-100 shadow-lg">
@@ -197,7 +251,7 @@
           </div>
         </div>
 
-        <!-- Tarjeta de detalles técnicos (separada) -->
+        <!-- Tarjeta de detalles técnicos -->
         <div class="mt-6 bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-lg">
           <div class="p-5 bg-gray-50 border-b border-gray-100">
             <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -312,6 +366,37 @@ const getHealthStatus = (score: number) => {
     iconBg: 'bg-red-100',
     badge: 'bg-red-100 text-red-800',
     progressColor: 'bg-red-500'
+  }
+}
+
+const getAddictionStatus = (score: number) => {
+  if (score >= 7) {
+    return {
+      status: 'Alta adicción',
+      color: 'text-red-600',
+      bg: 'bg-red-50',
+      iconBg: 'bg-red-100',
+      badge: 'bg-red-100 text-red-800',
+      progressColor: 'bg-red-500'
+    }
+  }
+  if (score >= 5) {
+    return {
+      status: 'Adicción moderada',
+      color: 'text-amber-600',
+      bg: 'bg-amber-50',
+      iconBg: 'bg-amber-100',
+      badge: 'bg-amber-100 text-amber-800',
+      progressColor: 'bg-amber-500'
+    }
+  }
+  return {
+    status: 'Baja adicción',
+    color: 'text-emerald-600',
+    bg: 'bg-emerald-50',
+    iconBg: 'bg-emerald-100',
+    badge: 'bg-emerald-100 text-emerald-800',
+    progressColor: 'bg-emerald-500'
   }
 }
 </script>
