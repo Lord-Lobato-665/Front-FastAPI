@@ -1,6 +1,6 @@
 <template>
   <aside :class="[
-    'fixed top-0 left-0 z-40 h-screen pt-20 transition-all duration-300 ease-in-out',
+    'fixed top-0 left-0 z-40 h-screen pt-15 transition-all duration-300 ease-in-out',
     'bg-gradient-to-b from-blue-800 to-blue-900 shadow-xl',
     collapsed ? 'w-20' : 'w-64',
     mobileOpen ? 'translate-x-0' : '-translate-x-full sm:translate-x-0'
