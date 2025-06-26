@@ -1,4 +1,4 @@
-import type { KMeansInput, KMeansResponse } from "../interface/KMeans";
+import type { KMeansInput, KMeansResponse } from "../types/KMeans";
 
 const BASE_URL = "http://127.0.0.1:8000/api/v1";
 

@@ -174,7 +174,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue';
 import { logisticService } from '../services/LogisticService';
-import type { LogisticInput, LogisticResponse } from '../interface/LogisticRegression';
+import type { LogisticInput, LogisticResponse } from '../types/LogisticRegression';
 
 const numericFeatures = ref<string[]>([]);
 const binaryTargets = ref<string[]>([]);

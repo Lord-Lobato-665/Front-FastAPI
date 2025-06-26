@@ -1,15 +1,16 @@
 <template>
-      <MentalHealthPrediction />
+  <LRegressionComponent/>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import MentalHealthPrediction from '../components/MHPrediction.vue';
+<script lang="ts" >
+import { defineComponent } from 'vue'
+import LRegressionComponent from '../components/LRegressionComponent.vue';
 
 export default defineComponent({
-  name: 'DataAnalysisView',
+  name: 'LinearRegressionView',
   components: {
-    MentalHealthPrediction
+    LRegressionComponent
   }
-});
+})
 </script>
+

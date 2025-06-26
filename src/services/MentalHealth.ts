@@ -1,5 +1,5 @@
 import { genericRequest } from "../api/GenericRequest";
-import type { MentalHealthPrediction } from "../interface/MentalHealthPrediction";
+import type { MentalHealthPrediction } from "../types/MentalHealthPrediction";
 
 class MentalHealthService {
   async getPrediction(hours: number): Promise<MentalHealthPrediction> {

@@ -142,12 +142,13 @@
 
 <script lang="ts" setup>
 import { ref, computed, onMounted } from "vue";
-import axios from "axios";
+import { boxplotService } from "../services/BoxplotService";
+import type { BoxplotColumn, BoxplotSummary } from "../types/BoxplotTypes";
 
-const columnas = ref<{ columna: string; tipo: string }[]>([]);
+const columnas = ref<BoxplotColumn[]>([]);
 const columnaSeleccionada = ref("");
 const valorUsuario = ref<number | null>(null);
-const resumen = ref<any>(null);
+const resumen = ref<BoxplotSummary | null>(null);
 const graficaUrl = ref<string>("");
 const mensajeError = ref<string>("");
 const cargando = ref<boolean>(false);
@@ -158,16 +159,10 @@ const esEdad = computed(() =>
 
 const obtenerCabeceras = async () => {
   try {
-    const response = await axios.get(
-      "http://127.0.0.1:8001/api/v1/predict/csv-heads"
-    );
-    columnas.value = response.data.columnas.filter(
-      (col: any) =>
-        col.tipo.toLowerCase().includes("int") &&
-        col.columna.toLowerCase() !== "student_id"
-    );
+    columnas.value = await boxplotService.getAvailableColumns();
   } catch (error) {
     console.error("Error al obtener las cabeceras:", error);
+    mensajeError.value = "Error al cargar las columnas disponibles";
   }
 };
 
@@ -190,21 +185,8 @@ const generarGrafica = async () => {
     resumen.value = null;
     graficaUrl.value = "";
 
-    const resumenResp = await axios.post(
-      "http://127.0.0.1:8001/api/v1/boxplot/summary_statistics",
-      payload
-    );
-    resumen.value = resumenResp.data;
-
-    const plotResp = await axios.post(
-      "http://127.0.0.1:8001/api/v1/boxplot/sleep_vs_screen",
-      payload,
-      {
-        responseType: "blob",
-      }
-    );
-
-    graficaUrl.value = URL.createObjectURL(plotResp.data);
+    resumen.value = await boxplotService.getSummaryStatistics(payload);
+    graficaUrl.value = await boxplotService.generateBoxplot(payload);
   } catch (error) {
     mensajeError.value = "Error al generar la gráfica o el resumen.";
     console.error(error);

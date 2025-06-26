@@ -21,8 +21,8 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import Sidebar from './components/Sidebar.vue';
-import Topbar from './components/Topbar.vue';
+import Sidebar from './layouts/Sidebar.vue';
+import Topbar from './layouts/Topbar.vue';
 
 const isCollapsed = ref(false);
 const showSidebar = ref(true);

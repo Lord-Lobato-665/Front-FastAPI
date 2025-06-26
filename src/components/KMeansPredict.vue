@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 p-6">
-    <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden">
+    <div class="mx-auto bg-white rounded-xl shadow-2xl overflow-hidden">
       <!-- Header -->
       <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 p-6 text-white">
         <h2 class="text-3xl font-bold">Análisis K-Means Clustering</h2>
@@ -160,7 +160,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { kmeansService } from '../services/KMeansService'
-import type { KMeansInput, KMeansResponse } from '../interface/KMeans'
+import type { KMeansInput, KMeansResponse } from '../types/KMeans'
 
 const availableColumns = ref<string[]>([])
 const selectedColumns = ref<string[]>([])
