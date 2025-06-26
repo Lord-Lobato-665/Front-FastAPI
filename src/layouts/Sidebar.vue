@@ -95,11 +95,11 @@ defineProps<{
 
 const menuItems = [
   { name: 'DataView', label: 'Vista Principal', path: '/', icon: LayoutDashboard },
+  { name: 'MentalHealth', label: 'Salud Mental', path: '/mental-health', icon: HeartPulse },
   { name: 'LinearRegression', label: 'Regresión Lineal', path: '/linear-regression', icon: LineChart },
   { name: 'LogisticRegression', label: 'Regresión Logística', path: '/logistic-regression', icon: Activity },
   { name: 'Kmeans', label: 'Análisis de Grupos', path: '/kmeans', icon: Group },
-  { name: 'AdvancedCharts', label: 'Gráficos Avanzados', path: '/advanced-charts', icon: BarChart3 },
-  { name: 'MentalHealth', label: 'Salud Mental', path: '/mental-health', icon: HeartPulse },
+  //{ name: 'AdvancedCharts', label: 'Gráficos Avanzados', path: '/advanced-charts', icon: BarChart3 },
   { name: 'Boxplot', label: 'Análisis Boxplot', path: '/boxplot', icon: AlignHorizontalJustifyCenter },
 ];
 
