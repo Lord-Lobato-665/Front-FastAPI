@@ -28,7 +28,7 @@
 
 <script lang="ts" setup>
 import { defineProps } from 'vue';
-import { LayoutDashboard, Brush, LineChart, Activity, TreeDeciduous, BarChart3 } from 'lucide-vue-next';
+import { LayoutDashboard, Brush, LineChart, Activity, TreeDeciduous, BarChart3, HeartPulse } from 'lucide-vue-next';
 
 defineProps<{
   collapsed: boolean;
@@ -42,5 +42,6 @@ const menuItems = [
   { name: 'LogisticRegression', label: 'Regresión Logística', path: '/logistic-regression', icon: Activity },
   { name: 'Kmeans', label: 'Grupos y Pertenencia', path: '/kmeans', icon: TreeDeciduous },
   { name: 'AdvancedCharts', label: 'Graficación Avanzada', path: '/advanced-charts', icon: BarChart3 },
+  { name: 'MentalHealth', label: 'Salud Mental', path: '/mental-health', icon: HeartPulse },
 ];
 </script>
