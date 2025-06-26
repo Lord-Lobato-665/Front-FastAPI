@@ -10,8 +10,9 @@ class BoxplotService {
     try {
       const response = await genericRequest.get<{ columnas: BoxplotColumn[] }>('/predict/csv-heads');
       return response.columnas.filter(
-        col => col.tipo.toLowerCase().includes("int") && 
-               col.columna.toLowerCase() !== "student_id"
+        col =>
+          (col.tipo.toLowerCase().includes("int") || col.tipo.toLowerCase().includes("float")) &&
+          col.columna.toLowerCase() !== "student_id"
       );
     } catch (error) {
       console.error('Error al obtener las columnas:', error);
