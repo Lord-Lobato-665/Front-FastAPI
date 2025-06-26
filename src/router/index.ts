@@ -5,6 +5,7 @@ import LinearRegression from '../views/LinearRegression.vue';
 import LogisticRegression from '../views/LogisticRegression.vue';
 import Trees from '../views/Trees.vue';
 import AdvancedCharts from '../views/AdvancedCharts.vue';
+import Boxplot from '../views/Boxplot.vue';
 import Kmeans from '../views/KmeansView.vue';
 
 const routes = [
@@ -14,6 +15,7 @@ const routes = [
   { path: '/logistic-regression', name: 'LogisticRegression', component: LogisticRegression },
   { path: '/trees', name: 'Trees', component: Trees },
   { path: '/advanced-charts', name: 'AdvancedCharts', component: AdvancedCharts },
+  { path: '/boxplot', name: 'Boxplot', component: Boxplot },
   { path: '/kmeans', name: 'Kmeans', component: Kmeans }
 ];
 
