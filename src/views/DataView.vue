@@ -23,7 +23,7 @@
                   :key="header"
                   class="text-left p-3 border-b border-blue-300 uppercase tracking-wide min-w-[150px]"
                 >
-                  {{ header }}
+                  {{ columnTranslations[header] ?? header }}
                 </th>
               </tr>
             </thead>
@@ -78,6 +78,39 @@ const paginatedData = computed(() => {
   const start = (currentPage.value - 1) * rowsPerPage;
   return tableData.value.slice(start, start + rowsPerPage);
 });
+
+// Matriz de traducción para las columnas
+const columnTranslations: Record<string, string> = {
+  Student_ID: "ID del Estudiante",
+  Age: "Edad",
+  Country: "País",
+  Avg_Daily_Usage_Hours: "Horas promedio de uso diario",
+  Affects_Academic_Performance: "Afecta el rendimiento académico",
+  Sleep_Hours_Per_Night: "Horas de sueño por noche",
+  Mental_Health_Score: "Puntaje de salud mental",
+  Conflicts_Over_Social_Media: "Conflictos por redes sociales",
+  Addicted_Score: "Puntaje de adicción",
+  Academic_Level_Graduate: "Nivel académico: Graduado",
+  Academic_Level_High_School: "Nivel académico: Secundaria",
+  Academic_Level_Undergraduate: "Nivel académico: Pregrado",
+  Most_Used_Platform_Facebook: "Plataforma más usada: Facebook",
+  Most_Used_Platform_Instagram: "Plataforma más usada: Instagram",
+  Most_Used_Platform_KakaoTalk: "Plataforma más usada: KakaoTalk",
+  Most_Used_Platform_LINE: "Plataforma más usada: LINE",
+  Most_Used_Platform_LinkedIn: "Plataforma más usada: LinkedIn",
+  Most_Used_Platform_Snapchat: "Plataforma más usada: Snapchat",
+  Most_Used_Platform_TikTok: "Plataforma más usada: TikTok",
+  Most_Used_Platform_Twitter: "Plataforma más usada: Twitter",
+  Most_Used_Platform_VKontakte: "Plataforma más usada: VKontakte",
+  Most_Used_Platform_WeChat: "Plataforma más usada: WeChat",
+  Most_Used_Platform_WhatsApp: "Plataforma más usada: WhatsApp",
+  Most_Used_Platform_YouTube: "Plataforma más usada: YouTube",
+  Relationship_Status_Complicated: "Estado sentimental: Complicado",
+  Relationship_Status_In_Relationship: "Estado sentimental: En pareja",
+  Relationship_Status_Single: "Estado sentimental: Soltero",
+  Gender_Female: "Género: Femenino",
+  Gender_Male: "Género: Masculino"
+};
 
 const loadCSVData = async () => {
   isLoading.value = true;
