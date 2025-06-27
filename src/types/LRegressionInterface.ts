@@ -9,3 +9,9 @@ export interface LinearMultiFeatureResponse {
   grafica_url: string;
   resumen: string;
 }
+
+export interface SocialMediaAnalysisRequest {
+  age_range: string,
+  country?: string,
+  academic_level: string,
+}
