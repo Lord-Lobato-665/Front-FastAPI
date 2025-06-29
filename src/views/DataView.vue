@@ -79,20 +79,18 @@ const paginatedData = computed(() => {
   return tableData.value.slice(start, start + rowsPerPage);
 });
 
-// Matriz de traducción para las columnas
 const columnTranslations: Record<string, string> = {
   Student_ID: "ID del Estudiante",
   Age: "Edad",
   Country: "País",
-  Avg_Daily_Usage_Hours: "Horas promedio de uso diario",
-  Affects_Academic_Performance: "Afecta el rendimiento académico",
+  Avg_Daily_Usage_Hours: "Horas de uso diario",
   Sleep_Hours_Per_Night: "Horas de sueño por noche",
-  Mental_Health_Score: "Puntaje de salud mental",
   Conflicts_Over_Social_Media: "Conflictos por redes sociales",
-  Addicted_Score: "Puntaje de adicción",
+
   Academic_Level_Graduate: "Nivel académico: Graduado",
   Academic_Level_High_School: "Nivel académico: Secundaria",
   Academic_Level_Undergraduate: "Nivel académico: Pregrado",
+
   Most_Used_Platform_Facebook: "Plataforma más usada: Facebook",
   Most_Used_Platform_Instagram: "Plataforma más usada: Instagram",
   Most_Used_Platform_KakaoTalk: "Plataforma más usada: KakaoTalk",
@@ -105,11 +103,18 @@ const columnTranslations: Record<string, string> = {
   Most_Used_Platform_WeChat: "Plataforma más usada: WeChat",
   Most_Used_Platform_WhatsApp: "Plataforma más usada: WhatsApp",
   Most_Used_Platform_YouTube: "Plataforma más usada: YouTube",
+
   Relationship_Status_Complicated: "Estado sentimental: Complicado",
   Relationship_Status_In_Relationship: "Estado sentimental: En pareja",
   Relationship_Status_Single: "Estado sentimental: Soltero",
+
   Gender_Female: "Género: Femenino",
-  Gender_Male: "Género: Masculino"
+  Gender_Male: "Género: Masculino",
+
+  // 🎯 NUEVAS columnas agregadas
+  Mental_Health_Score: "Puntaje de salud mental",
+  Addicted_Score: "Puntaje de adicción",
+  Affects_Academic_Performance: "Afecta el rendimiento académico"
 };
 
 const loadCSVData = async () => {
@@ -172,48 +177,13 @@ const handleFileUpload = async (e: Event) => {
     uploadMessage.value = result.message;
     uploadSuccess.value = true;
 
-    await readCSV(file);
+    // ✅ CORRECTO: recarga desde el backend procesado
+    await loadCSVData();
 
   } catch (error) {
     uploadMessage.value = error instanceof Error ? error.message : 'Error desconocido al subir el archivo';
     uploadSuccess.value = false;
     console.error('Error:', error);
   }
-};
-
-const readCSV = (file: File) => {
-  return new Promise<void>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      try {
-        const text = evt.target?.result as string;
-        const lines = text.split('\n');
-        
-        if (lines.length === 0) {
-          throw new Error('El archivo CSV está vacío');
-        }
-
-        headers.value = lines[0].split(',').map(h => h.trim());
-        
-        tableData.value = lines.slice(1).filter(line => line.trim()).map(line => {
-          const values = line.split(',');
-          const row: any = {};
-          headers.value.forEach((header, index) => {
-            row[header] = values[index]?.trim() || '';
-          });
-          return row;
-        });
-
-        currentPage.value = 1;
-        resolve();
-      } catch (error) {
-        reject(error);
-      }
-    };
-    reader.onerror = () => {
-      reject(new Error('Error al leer el archivo'));
-    };
-    reader.readAsText(file);
-  });
 };
 </script>
