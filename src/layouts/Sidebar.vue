@@ -85,7 +85,8 @@ import {
   BarChart3, 
   AlignHorizontalJustifyCenter, 
   HeartPulse, 
-  Group 
+  Group,
+  SquareUserRound,
 } from 'lucide-vue-next';
 
 defineProps<{
@@ -95,6 +96,7 @@ defineProps<{
 
 const menuItems = [
   { name: 'DataView', label: 'Vista Principal', path: '/', icon: LayoutDashboard },
+    { name: 'Profile', label: 'Perfil', path: '/profile', icon: SquareUserRound },
   { name: 'MentalHealth', label: 'Salud Mental', path: '/mental-health', icon: HeartPulse },
   { name: 'LinearRegression', label: 'Regresión Lineal', path: '/linear-regression', icon: LineChart },
   { name: 'SocialMedia', label: 'Analisis de Redes Sociales', path: '/social-media', icon: LineChart },
