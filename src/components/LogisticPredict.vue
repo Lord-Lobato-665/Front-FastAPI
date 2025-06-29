@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 p-6">
-    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden">
+    <div class=" mx-auto bg-white rounded-xl shadow-2xl overflow-hidden">
       <!-- Header -->
       <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 p-6 text-white">
         <h2 class="text-3xl font-bold">Predicción con Regresión Logística</h2>

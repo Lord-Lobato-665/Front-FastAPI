@@ -1,11 +1,12 @@
 <template>
   <aside :class="[
-    'fixed top-0 left-0 z-40 h-screen pt-15 transition-all duration-300 ease-in-out',
+    'fixed top-0 left-0 z-40 h-screen pt-17 sm:pt-13 transition-all duration-300 ease-in-out',
     'bg-gradient-to-b from-blue-800 to-blue-900 shadow-xl',
+    'flex flex-col', 
     collapsed ? 'w-20' : 'w-64',
     mobileOpen ? 'translate-x-0' : '-translate-x-full sm:translate-x-0'
   ]">
-    <div class="h-full px-3 pb-4 overflow-y-auto">
+    <div class="flex-1 px-3 overflow-y-auto">
       <ul class="space-y-2">
         <li v-for="item in menuItems" :key="item.name">
           <router-link 
@@ -35,12 +36,10 @@
               />
             </div>
             
-            <!-- Texto del menú -->
             <span v-if="!collapsed" class="flex-1 whitespace-nowrap">
               {{ item.label }}
             </span>
             
-            <!-- Efecto de onda al hacer clic -->
             <span class="absolute inset-0 overflow-hidden">
               <span class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></span>
               <span class="absolute inset-0 ripple-effect"></span>
@@ -50,29 +49,30 @@
       </ul>
     </div>
 
-    <!-- Botón para colapsar -->
-    <button 
-      @click="$emit('toggle-collapse')"
-      :class="[
-        'absolute bottom-4 left-1/2 -translate-x-1/2 p-2 rounded-full cursor-pointer',
-        'bg-white/20 hover:bg-white/30 transition-colors duration-200',
-        'shadow-md hover:shadow-lg',
-        'flex items-center justify-center'
-      ]"
-      aria-label="Toggle sidebar"
-    >
-      <svg 
+    <div class="w-full flex justify-center items-center py-4">
+      <button 
+        @click="$emit('toggle-collapse')"
         :class="[
-          'w-5 h-5 text-white transition-transform duration-300',
-          collapsed ? 'rotate-180' : ''
-        ]" 
-        fill="none" 
-        stroke="currentColor" 
-        viewBox="0 0 24 24"
+          'p-2 rounded-full cursor-pointer',
+          'bg-white/20 hover:bg-white/30 transition-colors duration-200',
+          'shadow-md hover:shadow-lg',
+          'flex items-center justify-center'
+        ]"
+        aria-label="Toggle sidebar"
       >
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-      </svg>
-    </button>
+        <svg 
+          :class="[
+            'w-5 h-5 text-white transition-transform duration-300',
+            collapsed ? 'rotate-180' : ''
+          ]" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+    </div>
   </aside>
 </template>
 
@@ -82,7 +82,6 @@ import {
   LayoutDashboard, 
   LineChart, 
   Activity, 
-  BarChart3, 
   AlignHorizontalJustifyCenter, 
   HeartPulse, 
   Group,
