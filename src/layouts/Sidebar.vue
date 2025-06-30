@@ -94,15 +94,15 @@ defineProps<{
 }>();
 
 const menuItems = [
-  { name: 'DataView', label: 'Vista Principal', path: '/', icon: LayoutDashboard },
-    { name: 'Profile', label: 'Perfil', path: '/profile', icon: SquareUserRound },
-  { name: 'MentalHealth', label: 'Salud Mental', path: '/mental-health', icon: HeartPulse },
-  { name: 'LinearRegression', label: 'Regresión Lineal', path: '/linear-regression', icon: LineChart },
-  { name: 'SocialMedia', label: 'Analisis de Redes Sociales', path: '/social-media', icon: LineChart },
-  { name: 'LogisticRegression', label: 'Regresión Logística', path: '/logistic-regression', icon: Activity },
+  { name: 'DataView', label: 'Inicio', path: '/', icon: LayoutDashboard },
+  { name: 'Profile', label: 'Mi Perfil', path: '/profile', icon: SquareUserRound },
+  { name: 'MentalHealth', label: 'Mi Salud Mental', path: '/mental-health', icon: HeartPulse },
+  { name: 'LinearRegression', label: 'Predicciones', path: '/linear-regression', icon: LineChart },
+  { name: 'SocialMedia', label: 'Mis Redes Sociales', path: '/social-media', icon: LineChart },
+  { name: 'LogisticRegression', label: 'Evaluación de Riesgo', path: '/logistic-regression', icon: Activity },
   { name: 'Kmeans', label: 'Análisis de Grupos', path: '/kmeans', icon: Group },
   //{ name: 'AdvancedCharts', label: 'Gráficos Avanzados', path: '/advanced-charts', icon: BarChart3 },
-  { name: 'Boxplot', label: 'Análisis Boxplot', path: '/boxplot', icon: AlignHorizontalJustifyCenter },
+  { name: 'Boxplot', label: 'Mis Estadísticas', path: '/boxplot', icon: AlignHorizontalJustifyCenter },
 ];
 
 defineEmits(['toggle-collapse']);

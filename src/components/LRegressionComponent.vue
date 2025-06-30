@@ -4,7 +4,7 @@
       <!-- Header -->
       <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 p-6 text-white">
         <h2 class="text-3xl font-bold">Regresión Lineal Multivariable</h2>
-        <p class="text-indigo-100 mt-2">Predice valores basados en múltiples variables</p>
+        <p class="text-indigo-100 mt-2">Predice valores basados en tus datos de perfil</p>
       </div>
 
       <div class="p-6 space-y-8">
@@ -15,10 +15,25 @@
           <!-- Variable objetivo -->
           <div class="mb-6">
             <label class="block text-lg font-medium text-gray-700 mb-2">Variable a predecir (objetivo):</label>
-            <select v-model="targetVariable"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-              <option v-for="col in targetOptions" :key="col" :value="col">{{ columnTranslations[col] || col }}</option>
-            </select>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
+              <div v-for="col in targetOptions" :key="'target-' + col" @click="targetVariable = col" :class="[
+                'border-2 rounded-lg p-3 cursor-pointer transition-all duration-200',
+                targetVariable === col
+                  ? 'border-indigo-500 bg-indigo-50 shadow-md'
+                  : 'border-gray-200 hover:border-indigo-300 hover:bg-indigo-50'
+              ]">
+                <div class="flex items-center justify-between">
+                  <span class="font-medium text-gray-800">{{ columnTranslations[col] || col }}</span>
+                  <span v-if="targetVariable === col" class="text-indigo-600">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clip-rule="evenodd" />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Variables predictoras -->
@@ -49,17 +64,16 @@
             </div>
           </div>
 
-          <!-- Valores de entrada -->
-          <div v-if="predictors.length > 0" class="mt-6">
-            <h4 class="text-lg font-medium text-gray-700 mb-3">Ingresa los valores:</h4>
+          <!-- Mostrar valores del perfil -->
+          <div v-if="predictors.length > 0 && userData" class="mt-6">
+            <h4 class="text-lg font-medium text-gray-700 mb-3">Tus datos de perfil:</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div v-for="col in predictors" :key="'input-' + col"
+              <div v-for="col in predictors" :key="'profile-' + col"
                 class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <label class="block text-sm font-medium text-gray-700 mb-1">{{ columnTranslations[col] || col }}</label>
-                <input type="number" v-model.number="inputValues[col]" :step="getStep(col)" :min="getMin(col)"
-                  :max="getMax(col)" @change="validateInput(col)"
-                  class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                  :placeholder="getPlaceholder(col)" />
+                <div class="text-lg font-semibold text-indigo-700">
+                  {{ getUserDataValue(col) }}
+                </div>
               </div>
             </div>
           </div>
@@ -90,6 +104,17 @@
               Predecir
             </span>
           </button>
+        </div>
+
+        <!-- Mensaje si no hay perfil -->
+        <div v-if="!userData" class="p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded">
+          <div class="flex items-center gap-2 text-yellow-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>No hay datos de perfil disponibles. Completa tu perfil primero.</span>
+          </div>
         </div>
 
         <!-- Errores -->
@@ -148,7 +173,7 @@
             <!-- Gráfico -->
             <div class="mt-6">
               <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                <img :!src="plotUrl" alt="Gráfico de regresión"
+                <img :src="plotUrl" alt="Gráfico de regresión"
                   class="w-full h-auto rounded-lg border border-gray-200" />
               </div>
             </div>
@@ -162,69 +187,62 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { linearRegressionService } from '../services/LRegression';
+import { useProfileStore } from '../stores/profileStore';
+
+const profileStore = useProfileStore();
+const userData = computed(() => profileStore.userData);
 
 const availableColumns = ref<string[]>([]);
 const targetOptions = ref<string[]>([]);
 const predictorOptions = ref<string[]>([]);
 const columnTranslations: Record<string, string> = {
   Age: 'Edad',
-  Avg_Daily_Usage_Hours: 'Horas de uso diario promedio de redes sociales',
-  Mental_Health_Score: 'Puntuación de salud mental',
-  Sleep_Hours_Per_Night: 'Horas de sueño por noche',
-  Addicted_Score: 'Puntuación de adicción',
-  Conflicts_Over_Social_Media: 'Conflictos por redes sociales',
-};
-
-const variableRanges: Record<string, { min: number, max: number, step: number }> = {
-  Age: { min: 1, max: 100, step: 1 },
-  Avg_Daily_Usage_Hours: { min: 0, max: 24, step: 0.5 },
-  Mental_Health_Score: { min: 1, max: 10, step: 0.1 },
-  Sleep_Hours_Per_Night: { min: 0, max: 24, step: 0.5 },
-  Addicted_Score: { min: 1, max: 10, step: 0.1 },
-  Conflicts_Over_Social_Media: { min: 0, max: 10, step: 1 },
+  Avg_Daily_Usage_Hours: 'Horas de uso diario',
+  Mental_Health_Score: 'Salud mental (1-10)',
+  Sleep_Hours_Per_Night: 'Horas de sueño',
+  Addicted_Score: 'Adicción (1-10)',
+  Conflicts_Over_Social_Media: 'Conflictos por redes',
 };
 
 const targetVariable = ref<string>('');
 const predictors = ref<string[]>([]);
-const inputValues = ref<Record<string, number>>({});
 const result = ref<any>(null);
-const plotUrl = ref<string | null>(null);
+const plotUrl = ref<string | undefined>(undefined);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
 const isValid = computed(() => {
   return targetVariable.value !== '' &&
     predictors.value.length === 2 &&
-    Object.values(inputValues.value).every(val => val !== undefined && !isNaN(val));
+    userData.value !== null;
 });
 
-const getStep = (col: string) => variableRanges[col]?.step || 1;
-const getMin = (col: string) => variableRanges[col]?.min || 0;
-const getMax = (col: string) => variableRanges[col]?.max || 100;
-const getPlaceholder = (col: string) => {
-  const range = variableRanges[col];
-  return range ? `${range.min}-${range.max}` : '';
-};
+const getUserDataValue = (col: string): string => {
+  if (!userData.value) return 'N/A';
 
-const validateInput = (col: string) => {
-  if (!inputValues.value[col] || isNaN(inputValues.value[col])) {
-    inputValues.value[col] = variableRanges[col]?.min || 0;
-    return;
+  const propertyMap: Record<string, string> = {
+    'Age': 'Age',
+    'Avg_Daily_Usage_Hours': 'Avg_Daily_Usage_Hours',
+    'Mental_Health_Score': 'Mental_Health_Score',
+    'Sleep_Hours_Per_Night': 'Sleep_Hours_Per_Night',
+    'Addicted_Score': 'Addiction_Score',
+    'Conflicts_Over_Social_Media': 'Conflicts_Over_Social_Media'
+  };
+
+  const property = propertyMap[col];
+  if (!property || userData.value[property] === undefined) return 'N/A';
+
+  const value = userData.value[property];
+
+  // Formatear valores según necesidad
+  if (col === 'Mental_Health_Score' || col === 'Addicted_Score') {
+    return value !== undefined ? value.toFixed(1) : 'N/A';
+  }
+  if (col === 'Avg_Daily_Usage_Hours' || col === 'Sleep_Hours_Per_Night') {
+    return value !== undefined ? `${value} hrs` : 'N/A';
   }
 
-  const range = variableRanges[col];
-  if (!range) return;
-  if (inputValues.value[col] < range.min) {
-    inputValues.value[col] = range.min;
-  } else if (inputValues.value[col] > range.max) {
-    inputValues.value[col] = range.max;
-  }
-  if (range.step < 1) {
-    const decimals = range.step.toString().split('.')[1]?.length || 0;
-    inputValues.value[col] = parseFloat(inputValues.value[col].toFixed(decimals));
-  } else {
-    inputValues.value[col] = Math.round(inputValues.value[col]);
-  }
+  return value !== undefined ? value.toString() : 'N/A';
 };
 
 const filterNumericColumns = (columns: string[]) => {
@@ -261,40 +279,67 @@ const fetchColumns = async () => {
 const togglePredictor = (col: string) => {
   if (predictors.value.includes(col)) {
     predictors.value = predictors.value.filter(c => c !== col);
-    delete inputValues.value[col];
   } else if (predictors.value.length < 2) {
     predictors.value.push(col);
-    inputValues.value[col] = variableRanges[col]?.min || 0;
   }
 };
 
 const predict = async () => {
+  if (!userData.value) {
+    error.value = 'No hay datos de perfil disponibles. Completa tu perfil primero.';
+    return;
+  }
+
   isLoading.value = true;
   error.value = null;
   result.value = null;
-  plotUrl.value = null;
+  plotUrl.value = undefined;
 
   try {
-    predictors.value.forEach(col => validateInput(col));
+    const propertyToColumnMap: Record<string, string> = {
+      'Age': 'Age',
+      'Avg_Daily_Usage_Hours': 'Avg_Daily_Usage_Hours',
+      'Mental_Health_Score': 'Mental_Health_Score',
+      'Sleep_Hours_Per_Night': 'Sleep_Hours_Per_Night',
+      'Addiction_Score': 'Addicted_Score',
+      'Conflicts_Over_Social_Media': 'Conflicts_Over_Social_Media'
+    };
+
     const payload = {
       features: predictors.value.reduce((acc, col) => {
-        acc[col] = inputValues.value[col];
+        const [property] = Object.entries(propertyToColumnMap).find(
+          ([_, column]) => column === col
+        ) || [];
+
+        if (property && userData.value && userData.value[property] !== undefined) {
+          acc[col] = Number(userData.value[property]);
+        } else {
+          console.error(`No se encontró valor para ${col} en los datos del usuario`);
+          acc[col] = 0; // Valor por defecto si no existe
+        }
         return acc;
       }, {} as Record<string, number>),
       target: targetVariable.value
     };
 
+    console.log("Payload enviado:", payload); // Para depuración
+
     result.value = await linearRegressionService.predictMultipleFeatures(payload);
     plotUrl.value = await linearRegressionService.getMultipleFeaturesPlot();
   } catch (err) {
-    error.value = 'Error al realizar la predicción';
+    error.value = 'Error al realizar la predicción. Inténtalo de nuevo más tarde.';
     console.error(err);
   } finally {
     isLoading.value = false;
   }
 };
 
-onMounted(fetchColumns);
+onMounted(() => {
+  fetchColumns();
+  if (!userData.value) {
+    profileStore.loadFromStorage();
+  }
+});
 </script>
 
 <style scoped>

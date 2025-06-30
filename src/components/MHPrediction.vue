@@ -35,37 +35,40 @@
           </div>
 
           <div class="px-6 pb-6 space-y-6">
-            <div class="space-y-3 pt-2">
-              <label for="hours" class="block text-base font-medium text-gray-700">
-                Horas diarias en redes
-              </label>
-              <div class="relative">
-                <input id="hours" v-model.number="usageHours" type="number" step="0.1" min="0" max="24"
-                  class="w-full text-lg py-3 pl-4 pr-16 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/50"
-                  placeholder="Ej. 3.5" />
-                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">hrs</span>
+            <template v-if="profile && profile.Avg_Daily_Usage_Hours !== undefined">
+              <div class="space-y-3 pt-2">
+                <label class="block text-base font-medium text-gray-700">
+                  Horas diarias en redes
+                </label>
+                <div class="relative">
+                  <input type="number" :value="profile.Avg_Daily_Usage_Hours" disabled
+                    class="w-full text-lg py-3 pl-4 pr-16 border border-gray-200 rounded-xl bg-gray-100 text-gray-500" />
+                  <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">hrs</span>
+                </div>
               </div>
-            </div>
-
-            <button @click="getPrediction" :disabled="isLoading"
-              class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 text-lg disabled:opacity-50 disabled:cursor-not-allowed group">
-              <span v-if="isLoading" class="flex items-center justify-center">
-                <svg class="w-5 h-5 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Analizando...
-              </span>
-              <span v-else class="flex items-center justify-center">
-                <svg class="w-5 h-5 mr-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="text-green-700 font-semibold flex items-center gap-2">
+                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    d="M5 13l4 4L19 7" />
                 </svg>
-                Analizar mi bienestar
-              </span>
-            </button>
-
+                Datos de tu perfil aplicados automáticamente
+              </div>
+            </template>
+            <template v-else>
+              <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-xl flex items-start gap-3">
+                <div class="flex-shrink-0 mt-0.5">
+                  <div class="w-5 h-5 rounded-full bg-yellow-100 flex items-center justify-center">
+                    <svg class="w-3 h-3 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+                <p class="text-yellow-700 font-medium">
+                  Primero completa tu perfil para ver tu bienestar digital.
+                </p>
+              </div>
+            </template>
             <div v-if="error" class="p-4 bg-red-50 border border-red-200 rounded-xl animate-fade-in flex items-start gap-3">
               <div class="flex-shrink-0 mt-0.5">
                 <div class="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center">
@@ -293,30 +296,35 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { mentalHealthService } from '../services/MentalHealth'
 import type { MentalHealthPrediction } from '../types/MentalHealthPrediction'
 
+// Recuperar perfil del localStorage
+function getProfileFromStorage() {
+  try {
+    const data = localStorage.getItem('userProfile');
+    return data ? JSON.parse(data) : null;
+  } catch {
+    return null;
+  }
+}
+
+const profile = ref<any>(null)
 const usageHours = ref<number>(3)
 const predictionData = ref<MentalHealthPrediction | null>(null)
 const plotUrl = ref<string | null>(null)
 const isLoading = ref<boolean>(false)
 const error = ref<string | null>(null)
 
-const getPrediction = async () => {
-  if (usageHours.value === null || usageHours.value < 0 || usageHours.value > 24) {
-    error.value = 'Por favor ingresa un valor válido entre 0 y 24 horas'
-    return
-  }
-
+const getPrediction = async (hours: number) => {
   isLoading.value = true
   error.value = null
   predictionData.value = null
   plotUrl.value = null
 
   try {
-    predictionData.value = await mentalHealthService.getPrediction(usageHours.value)
-
+    predictionData.value = await mentalHealthService.getPrediction(hours)
     setTimeout(async () => {
       plotUrl.value = await mentalHealthService.getPlot()
       isLoading.value = false
@@ -327,6 +335,14 @@ const getPrediction = async () => {
     isLoading.value = false
   }
 }
+
+onMounted(async () => {
+  profile.value = getProfileFromStorage()
+  if (profile.value && profile.value.Avg_Daily_Usage_Hours !== undefined) {
+    usageHours.value = profile.value.Avg_Daily_Usage_Hours
+    await getPrediction(usageHours.value)
+  }
+})
 
 const getHealthStatus = (score: number) => {
   if (score >= 8) {

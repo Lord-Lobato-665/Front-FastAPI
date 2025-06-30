@@ -1,6 +1,5 @@
-// src/stores/profileStore.ts
 import { defineStore } from 'pinia';
-import type { FormInputUser, CalculatedScores } from '../types/userProfile';
+import type { FormInputUser, CalculatedScores } from '../types/UserProfile';
 import { profileService } from '../services/ProfileService';
 
 export const useProfileStore = defineStore('profile', {

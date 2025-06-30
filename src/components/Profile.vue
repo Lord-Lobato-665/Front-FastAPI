@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-    <div class="w-full ">
+    <div class="w-full mx-auto">
       <!-- Tarjeta principal -->
       <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
         <!-- Header con gradiente profesional -->
