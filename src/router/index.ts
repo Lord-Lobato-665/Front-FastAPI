@@ -3,6 +3,7 @@ import DataView from '../views/DataView.vue';
 import DataCleaning from '../views/DataCleaning.vue';
 import LinearRegression from '../views/LinearRegression.vue';
 import SocialMedia from '../views/SocialMediaAnalysis.vue';
+import Histogramas from '../views/Histogramas.vue';
 import LogisticRegression from '../views/LogisticRegression.vue';
 import Trees from '../views/Trees.vue';
 import Boxplot from '../views/Boxplot.vue';
@@ -15,6 +16,7 @@ const routes = [
   { path: '/cleaning', name: 'DataCleaning', component: DataCleaning },
   { path: '/linear-regression', name: 'LinearRegression', component: LinearRegression },
   { path: '/social-media', name: 'SocialMedia', component: SocialMedia },
+  { path: '/histogramas', name: 'Histogramas', component: Histogramas },
   { path: '/logistic-regression', name: 'LogisticRegression', component: LogisticRegression },
   { path: '/trees', name: 'Trees', component: Trees },
   { path: '/kmeans', name: 'Kmeans', component: Kmeans },

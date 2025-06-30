@@ -2,46 +2,39 @@
   <aside :class="[
     'fixed top-0 left-0 z-40 h-screen pt-17 sm:pt-13 transition-all duration-300 ease-in-out',
     'bg-gradient-to-b from-blue-800 to-blue-900 shadow-xl',
-    'flex flex-col', 
+    'flex flex-col',
     collapsed ? 'w-20' : 'w-64',
     mobileOpen ? 'translate-x-0' : '-translate-x-full sm:translate-x-0'
   ]">
     <div class="flex-1 px-3 overflow-y-auto">
       <ul class="space-y-2">
         <li v-for="item in menuItems" :key="item.name">
-          <router-link 
-            :to="item.path" 
-            :class="[
-              'flex items-center p-3 rounded-lg transition-all duration-200',
-              'text-blue-100 hover:bg-blue-700 hover:text-white',
-              'group relative overflow-hidden',
-              collapsed ? 'justify-center' : ''
-            ]"
-            active-class="!bg-blue-600 !text-white font-medium shadow-md"
-            exact
-          >
+          <router-link :to="item.path" :class="[
+            'flex items-center p-3 rounded-lg transition-all duration-200',
+            'text-blue-100 hover:bg-blue-700 hover:text-white',
+            'group relative overflow-hidden',
+            collapsed ? 'justify-center' : ''
+          ]" active-class="!bg-blue-600 !text-white font-medium shadow-md" exact>
             <!-- Icono con efecto -->
             <div :class="[
               'p-2 rounded-lg transition-all',
               'group-hover:bg-white/10',
               collapsed ? 'mr-0' : 'mr-3'
             ]">
-              <component 
-                :is="item.icon" 
-                :class="[
-                  'w-5 h-5 transition-transform',
-                  'group-hover:scale-110',
-                  collapsed ? 'mx-auto' : ''
-                ]" 
-              />
+              <component :is="item.icon" :class="[
+                'w-5 h-5 transition-transform',
+                'group-hover:scale-110',
+                collapsed ? 'mx-auto' : ''
+              ]" />
             </div>
-            
+
             <span v-if="!collapsed" class="flex-1 whitespace-nowrap">
               {{ item.label }}
             </span>
-            
+
             <span class="absolute inset-0 overflow-hidden">
-              <span class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></span>
+              <span
+                class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></span>
               <span class="absolute inset-0 ripple-effect"></span>
             </span>
           </router-link>
@@ -50,25 +43,16 @@
     </div>
 
     <div class="w-full flex justify-center items-center py-4">
-      <button 
-        @click="$emit('toggle-collapse')"
-        :class="[
-          'p-2 rounded-full cursor-pointer',
-          'bg-white/20 hover:bg-white/30 transition-colors duration-200',
-          'shadow-md hover:shadow-lg',
-          'flex items-center justify-center'
-        ]"
-        aria-label="Toggle sidebar"
-      >
-        <svg 
-          :class="[
-            'w-5 h-5 text-white transition-transform duration-300',
-            collapsed ? 'rotate-180' : ''
-          ]" 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
+      <button @click="$emit('toggle-collapse')" :class="[
+        'p-2 rounded-full cursor-pointer',
+        'bg-white/20 hover:bg-white/30 transition-colors duration-200',
+        'shadow-md hover:shadow-lg',
+        'flex items-center justify-center'
+      ]" aria-label="Toggle sidebar">
+        <svg :class="[
+          'w-5 h-5 text-white transition-transform duration-300',
+          collapsed ? 'rotate-180' : ''
+        ]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
       </button>
@@ -78,12 +62,12 @@
 
 <script lang="ts" setup>
 import { defineProps } from 'vue';
-import { 
-  LayoutDashboard, 
-  LineChart, 
-  Activity, 
-  AlignHorizontalJustifyCenter, 
-  HeartPulse, 
+import {
+  LayoutDashboard,
+  LineChart,
+  Activity,
+  AlignHorizontalJustifyCenter,
+  HeartPulse,
   Group,
   SquareUserRound,
 } from 'lucide-vue-next';
@@ -99,6 +83,7 @@ const menuItems = [
   { name: 'MentalHealth', label: 'Mi Salud Mental', path: '/mental-health', icon: HeartPulse },
   { name: 'LinearRegression', label: 'Predicciones', path: '/linear-regression', icon: LineChart },
   { name: 'SocialMedia', label: 'Mis Redes Sociales', path: '/social-media', icon: LineChart },
+  { name: 'Histogramas', label: 'Histogramas', path: '/histogramas', icon: AlignHorizontalJustifyCenter },
   { name: 'LogisticRegression', label: 'Evaluación de Riesgo', path: '/logistic-regression', icon: Activity },
   { name: 'Kmeans', label: 'Análisis de Grupos', path: '/kmeans', icon: Group },
   //{ name: 'AdvancedCharts', label: 'Gráficos Avanzados', path: '/advanced-charts', icon: BarChart3 },
