@@ -1,57 +1,80 @@
 <template>
-  <div class="min-h-screen bg-gray-100 p-8">
-    <div class="w-full px-4">
+  <div class="h-screen bg-gray-50 p-4">
+    <div class="max-w-7xl mx-auto">
       <Header />
 
-      <div class="bg-white shadow-md rounded-lg p-6">
-        <input
-          type="file"
-          accept=".csv"
-          @change="handleFileUpload"
-          class="mb-4 p-2 border rounded w-full"
-        />
-        <p v-if="uploadMessage" class="mb-4" :class="uploadSuccess ? 'text-green-600' : 'text-red-600'">
-          {{ uploadMessage }}
-        </p>
-
-        <div v-if="paginatedData.length" class="overflow-auto">
-          <table class="min-w-[1200px] w-full border border-blue-300 mt-4 text-sm text-gray-800">
-            <thead class="bg-blue-800 text-white">
-              <tr>
-                <th
-                  v-for="header in headers"
-                  :key="header"
-                  class="text-left p-3 border-b border-blue-300 uppercase tracking-wide min-w-[150px]"
-                >
-                  {{ columnTranslations[header] ?? header }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="(row, index) in paginatedData"
-                :key="index"
-                class="odd:bg-gray-100 even:bg-blue-50 hover:bg-blue-100 transition-colors"
-              >
-                <td
-                  v-for="header in headers"
-                  :key="header"
-                  class="p-3 border-b border-blue-200"
-                >
-                  {{ row[header] }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <Paginator
-            :current-page="currentPage"
-            :total-pages="totalPages"
-            @update:page="(val) => currentPage = val"
-          />
+      <div class="bg-white shadow-sm rounded-xl p-6 mt-6 border border-gray-100">
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Subir archivo CSV</label>
+          <div class="flex space-x-2">
+            <input
+              type="file"
+              accept=".csv"
+              @change="handleFileUpload"
+              class="block w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-blue-50 file:text-blue-700
+                    hover:file:bg-blue-100"
+            />
+          </div>
+          <p v-if="uploadMessage" class="mt-2 text-sm" :class="uploadSuccess ? 'text-green-600' : 'text-red-600'">
+            {{ uploadMessage }}
+          </p>
         </div>
 
-        <p v-else class="text-gray-500">No se ha cargado ningún archivo.</p>
+        <div v-if="paginatedData.length">
+          <div class="relative overflow-hidden border border-gray-200 rounded-lg">
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-blue-900">
+                  <tr>
+                    <th
+                      v-for="header in headers"
+                      :key="header"
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
+                    >
+                      {{ columnTranslations[header] ?? header }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr
+                    v-for="(row, index) in paginatedData"
+                    :key="index"
+                    class="hover:bg-gray-50 transition-colors duration-150"
+                  >
+                    <td
+                      v-for="header in headers"
+                      :key="header"
+                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                    >
+                      {{ row[header] }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between">
+            <Paginator
+              :current-page="currentPage"
+              :total-pages="totalPages"
+              @update:page="(val) => currentPage = val"
+            />
+          </div>
+        </div>
+
+        <div v-else class="text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No hay datos disponibles</h3>
+          <p class="mt-1 text-sm text-gray-500">Sube un archivo CSV para comenzar.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -65,7 +88,7 @@ import Paginator from '../components/Paginator.vue';
 const headers = ref<string[]>([]);
 const tableData = ref<any[]>([]);
 const currentPage = ref(1);
-const rowsPerPage = 7;
+const rowsPerPage = 10;
 const uploadMessage = ref('');
 const uploadSuccess = ref(false);
 const isLoading = ref(false);
@@ -111,7 +134,6 @@ const columnTranslations: Record<string, string> = {
   Gender_Female: "Género: Femenino",
   Gender_Male: "Género: Masculino",
 
-  // 🎯 NUEVAS columnas agregadas
   Mental_Health_Score: "Puntaje de salud mental",
   Addicted_Score: "Puntaje de adicción",
   Affects_Academic_Performance: "Afecta el rendimiento académico"
@@ -177,7 +199,6 @@ const handleFileUpload = async (e: Event) => {
     uploadMessage.value = result.message;
     uploadSuccess.value = true;
 
-    // ✅ CORRECTO: recarga desde el backend procesado
     await loadCSVData();
 
   } catch (error) {
