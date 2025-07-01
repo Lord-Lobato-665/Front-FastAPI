@@ -189,7 +189,7 @@
           </form>
 
           <!-- Vista de resumen -->
-          <div v-if="hasProfile" class="space-y-8">
+          <div v-if="hasProfile" class="space-y-8 ">
             <div class="bg-gray-50 border border-gray-100 rounded-xl">
               <div class="flex items-center mb-6">
                 <div class="h-10 w-1 bg-blue-600 rounded-r mr-3"></div>
@@ -251,9 +251,9 @@
                           {{ userData?.Mental_Health_Interpretation }}
                         </span>
                       </div>
-                      <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="h-2 rounded-full transition-all" :style="{
-                          width: `${(userData?.Mental_Health_Score / 10) * 100}%`,
+                      <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                        <div class="h-2 rounded-full transition-all max-w-full" :style="{
+                          width: `${Math.min((userData?.Mental_Health_Score / 10) * 100, 100)}%`,
                           background: getBarGradient(userData?.Mental_Health_Score)
                         }"></div>
                       </div>
@@ -270,9 +270,9 @@
                           {{ userData?.Addiction_Level }}
                         </span>
                       </div>
-                      <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="h-2 rounded-full transition-all" :style="{
-                          width: `${(userData?.Addiction_Score / 10) * 100}%`,
+                      <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                        <div class="h-2 rounded-full transition-all max-w-full" :style="{
+                          width: `${Math.min((userData?.Addiction_Score / 10) * 100, 100)}%`,
                           background: getBarGradient(userData?.Addiction_Score)
                         }"></div>
                       </div>
@@ -319,7 +319,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useProfileStore } from '../stores/profileStore';
-import type { FormInputUser } from '../types/userProfile';
+import type { FormInputUser } from '../types/UserProfile';
 
 const profileStore = useProfileStore();
 const isSubmitting = ref(false);
