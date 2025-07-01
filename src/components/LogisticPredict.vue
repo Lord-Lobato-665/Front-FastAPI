@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 p-6">
-    <div class=" mx-auto bg-white rounded-xl shadow-2xl overflow-hidden">
+    <div class="mx-auto bg-white rounded-xl shadow-2xl overflow-hidden max-w-4xl">
       <!-- Header -->
       <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 p-6 text-white">
         <h2 class="text-3xl font-bold">Predicción con Regresión Logística</h2>
@@ -27,51 +27,31 @@
           </select>
         </div>
 
-        <!-- Factores de predicción como cards colapsables -->
+        <!-- Factores de predicción con valores fijos y selección -->
         <div>
-          <h3 class="text-xl font-semibold text-gray-800 mb-4">Factores de predicción</h3>
-          <p class="text-sm text-gray-500 mb-6">Haz clic en un factor para ingresar su valor numérico</p>
+          <h3 class="text-xl font-semibold text-gray-800 mb-4">Factores de predicción (selecciona uno o más)</h3>
+          <p class="text-sm text-gray-500 mb-6">Haz clic en un factor para seleccionarlo</p>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div
               v-for="feature in numericFeatures"
               :key="feature"
-              class="border-2 rounded-lg p-4 cursor-pointer transition-shadow duration-200"
-              :class="expandedFeatures.includes(feature)
+              class="border-2 rounded-lg p-4 cursor-pointer transition-shadow duration-200 select-none"
+              :class="selectedFeatures.includes(feature)
                 ? 'border-indigo-500 shadow-lg bg-indigo-50'
                 : 'border-gray-200 hover:border-indigo-300 hover:bg-indigo-50'"
               @click="toggleFeature(feature)"
+              role="checkbox"
+              :aria-checked="selectedFeatures.includes(feature)"
+              tabindex="0"
+              @keydown.enter.prevent="toggleFeature(feature)"
             >
               <div class="flex items-center justify-between">
                 <span class="font-semibold text-gray-900">{{ formatColumnName(feature) }}</span>
-                <svg
-                  :class="['w-5 h-5 transition-transform duration-300',
-                    expandedFeatures.includes(feature)
-                      ? 'rotate-180 text-indigo-600'
-                      : 'text-gray-400'
-                  ]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  stroke-width="2"
-                >
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
+                <span
+                  class="text-indigo-700 font-bold"
+                >{{ fixedValues[feature] }} {{ units[feature] }}</span>
               </div>
-
-              <transition name="slide-fade">
-                <div v-if="expandedFeatures.includes(feature)" class="mt-4">
-                  <input
-                    type="number"
-                    v-model.number="inputValues[feature]"
-                    :step="getInputStep(feature)"
-                    :placeholder="getPlaceholder(feature)"
-                    class="w-full border border-indigo-300 rounded-md p-2 focus:ring-indigo-400 focus:border-indigo-400"
-                    @blur="onInputChange(feature, $event)"
-                    @click.stop
-                  />
-                </div>
-              </transition>
             </div>
           </div>
         </div>
@@ -179,11 +159,10 @@ import type { LogisticInput, LogisticResponse } from '../types/LogisticRegressio
 const numericFeatures = ref<string[]>([]);
 const binaryTargets = ref<string[]>([]);
 const selectedTarget = ref<string>('');
-const inputValues = ref<Record<string, number>>({});
+const selectedFeatures = ref<string[]>([]);
 const result = ref<LogisticResponse | null>(null);
 const plotUrl = ref<string>('');
 const isLoading = ref(false);
-const expandedFeatures = ref<string[]>([]);
 
 const analyzeButton = ref<HTMLElement | null>(null);
 const resultsSection = ref<HTMLElement | null>(null);
@@ -197,6 +176,7 @@ onMounted(async () => {
   }
 });
 
+// Traducción nombres columnas
 const columnTranslations: Record<string, string> = {
   Age: 'Edad',
   Avg_Daily_Usage_Hours: 'Horas promedio de uso diario',
@@ -229,52 +209,37 @@ const formatColumnName = (col: string): string => {
   return columnTranslations[col] || col.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
 };
 
-const getRange = (col: string) => {
-  const ranges: Record<string, { min: number; max: number }> = {
-    Age: { min: 18, max: 100 },
-    Avg_Daily_Usage_Hours: { min: 1, max: 24 },
-    Mental_Health_Score: { min: 1, max: 10 },
-    Addicted_Score: { min: 1, max: 10 },
-    Sleep_Hours_Per_Night: { min: 0, max: 12 },
-    Conflicts_Over_Social_Media: { min: 0, max: 10 }
-  };
-  return ranges[col] || { min: 0, max: Infinity };
+// Valores fijos que muestra cada factor (puedes ajustar a tus valores reales)
+const fixedValues: Record<string, number> = {
+  Age: 25,
+  Avg_Daily_Usage_Hours: 5,
+  Sleep_Hours_Per_Night: 7,
+  Mental_Health_Score: 6,
+  Conflicts_Over_Social_Media: 2,
+  Addicted_Score: 4,
 };
 
-const onInputChange = (feature: string, event: Event) => {
-  const t = event.target as HTMLInputElement;
-  let v = t.value === '' ? NaN : Number(t.value);
-  const { min, max } = getRange(feature);
-  if (isNaN(v)) { inputValues.value[feature] = NaN; return; }
-  if (v < min) v = min;
-  if (v > max) v = max;
-  if (['Age', 'Conflicts_Over_Social_Media'].includes(feature)) v = Math.floor(v);
-  inputValues.value[feature] = v;
-  t.value = String(v);
+// Unidades para cada factor
+const units: Record<string, string> = {
+  Age: 'años',
+  Avg_Daily_Usage_Hours: 'horas',
+  Sleep_Hours_Per_Night: 'horas',
+  Mental_Health_Score: 'puntos',
+  Conflicts_Over_Social_Media: 'eventos',
+  Addicted_Score: 'puntos',
 };
 
-const getInputStep = (col: string) => ['Age', 'Conflicts_Over_Social_Media'].includes(col) ? '1' : '0.1';
-const getPlaceholder = (col: string) => ({
-  Age: '18-100',
-  Avg_Daily_Usage_Hours: '1-24',
-  Mental_Health_Score: '1-10',
-  Addicted_Score: '1-10',
-  Conflicts_Over_Social_Media: '0-10'
-}[col] || 'Ingrese valor');
-
-const toggleFeature = (f: string) => {
-  expandedFeatures.value.includes(f)
-    ? expandedFeatures.value = expandedFeatures.value.filter(x => x !== f)
-    : expandedFeatures.value.push(f);
+const toggleFeature = (feature: string) => {
+  const index = selectedFeatures.value.indexOf(feature);
+  if (index === -1) {
+    selectedFeatures.value.push(feature);
+  } else {
+    selectedFeatures.value.splice(index, 1);
+  }
 };
 
 const isValid = computed(() => {
-  if (!selectedTarget.value) return false;
-  if (!Object.keys(inputValues.value).length) return false;
-  return Object.entries(inputValues.value).every(([f, v]) => {
-    const { min, max } = getRange(f);
-    return !isNaN(v) && v >= min && v <= max;
-  });
+  return selectedTarget.value !== '' && selectedFeatures.value.length > 0;
 });
 
 const riskLevelColor = computed(() => {
@@ -289,10 +254,19 @@ const predict = async () => {
   result.value = null;
   plotUrl.value = '';
   try {
-    const payload: LogisticInput = { features: { ...inputValues.value }, target: selectedTarget.value };
+    // Crear objeto features solo con los seleccionados y sus valores fijos
+    const featuresPayload: Record<string, number> = {};
+    selectedFeatures.value.forEach(f => {
+      featuresPayload[f] = fixedValues[f] ?? 0;
+    });
+    const payload: LogisticInput = { features: featuresPayload, target: selectedTarget.value };
     result.value = await logisticService.predict(payload);
     plotUrl.value = await logisticService.getPlot();
-  } catch (e) { console.error(e); } finally { isLoading.value = false; }
+  } catch (e) {
+    console.error(e);
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 const predictAndScroll = async () => {
