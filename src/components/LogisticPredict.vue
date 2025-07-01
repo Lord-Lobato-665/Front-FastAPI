@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 p-6">
-    <div class="mx-auto bg-white rounded-xl shadow-2xl overflow-hidden max-w-4xl">
+    <div class="mx-auto bg-white rounded-xl shadow-2xl overflow-hidden">
       <!-- Header -->
       <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 p-6 text-white">
         <h2 class="text-3xl font-bold">Predicción con Regresión Logística</h2>
@@ -8,6 +8,17 @@
       </div>
 
       <div class="p-6 space-y-8">
+        <!-- Mensaje si no hay perfil -->
+        <div v-if="!hasValidProfile" class="p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded">
+          <div class="flex items-center gap-2 text-yellow-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>No hay datos de perfil disponibles. Completa tu perfil primero.</span>
+          </div>
+        </div>
+
         <!-- Selección de variable objetivo (Y) -->
         <div>
           <h3 class="text-xl font-semibold text-gray-800 mb-4">¿Qué quieres predecir?</h3>
@@ -15,6 +26,7 @@
           <select
             v-model="selectedTarget"
             class="w-full border border-gray-300 rounded-md p-3 focus:ring-indigo-500 focus:border-indigo-500"
+            :disabled="!hasValidProfile"
           >
             <option value="">Selecciona una opción</option>
             <option
@@ -27,7 +39,7 @@
           </select>
         </div>
 
-        <!-- Factores de predicción con valores fijos y selección -->
+        <!-- Factores de predicción con valores del perfil y selección -->
         <div>
           <h3 class="text-xl font-semibold text-gray-800 mb-4">Factores de predicción (selecciona uno o más)</h3>
           <p class="text-sm text-gray-500 mb-6">Haz clic en un factor para seleccionarlo</p>
@@ -37,20 +49,23 @@
               v-for="feature in numericFeatures"
               :key="feature"
               class="border-2 rounded-lg p-4 cursor-pointer transition-shadow duration-200 select-none"
-              :class="selectedFeatures.includes(feature)
-                ? 'border-indigo-500 shadow-lg bg-indigo-50'
-                : 'border-gray-200 hover:border-indigo-300 hover:bg-indigo-50'"
-              @click="toggleFeature(feature)"
+              :class="[
+                selectedFeatures.includes(feature)
+                  ? 'border-indigo-500 shadow-lg bg-indigo-50'
+                  : 'border-gray-200 hover:border-indigo-300 hover:bg-indigo-50',
+                !hasValidProfile ? 'opacity-50 cursor-not-allowed' : ''
+              ]"
+              @click="hasValidProfile ? toggleFeature(feature) : null"
               role="checkbox"
               :aria-checked="selectedFeatures.includes(feature)"
               tabindex="0"
-              @keydown.enter.prevent="toggleFeature(feature)"
+              @keydown.enter.prevent="hasValidProfile ? toggleFeature(feature) : null"
             >
               <div class="flex items-center justify-between">
                 <span class="font-semibold text-gray-900">{{ formatColumnName(feature) }}</span>
                 <span
                   class="text-indigo-700 font-bold"
-                >{{ fixedValues[feature] }} {{ units[feature] }}</span>
+                >{{ getUserDataValue(feature) }} {{ units[feature] }}</span>
               </div>
             </div>
           </div>
@@ -60,10 +75,10 @@
         <div class="pt-4" ref="analyzeButton">
           <button
             @click="predictAndScroll"
-            :disabled="!isValid || isLoading"
+            :disabled="!isValid || isLoading || !hasValidProfile"
             :class="[
               'w-full md:w-auto px-8 py-3 rounded-xl font-semibold text-lg shadow-lg transition-all duration-300 flex items-center justify-center gap-2',
-              isValid && !isLoading
+              isValid && !isLoading && hasValidProfile
                 ? 'bg-gradient-to-r from-indigo-600 to-indigo-800 hover:from-indigo-700 hover:to-indigo-900 text-white'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             ]"
@@ -141,6 +156,7 @@
                   :src="plotUrl"
                   alt="Gráfico regresión logística"
                   class="w-full rounded-lg border border-indigo-200 shadow-sm"
+                  v-if="plotUrl"
                 />
               </div>
             </div>
@@ -154,7 +170,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue';
 import { logisticService } from '../services/LogisticService';
+import { useProfileStore } from '../stores/profileStore';
 import type { LogisticInput, LogisticResponse } from '../types/LogisticRegression';
+
+const profileStore = useProfileStore();
+const userData = computed(() => profileStore.userData);
 
 const numericFeatures = ref<string[]>([]);
 const binaryTargets = ref<string[]>([]);
@@ -166,15 +186,6 @@ const isLoading = ref(false);
 
 const analyzeButton = ref<HTMLElement | null>(null);
 const resultsSection = ref<HTMLElement | null>(null);
-
-onMounted(async () => {
-  try {
-    numericFeatures.value = await logisticService.getNumericFeatures();
-    binaryTargets.value = await logisticService.getBinaryTargets();
-  } catch (error) {
-    console.error('Error loading data:', error);
-  }
-});
 
 // Traducción nombres columnas
 const columnTranslations: Record<string, string> = {
@@ -205,20 +216,6 @@ const columnTranslations: Record<string, string> = {
   "Relationship_Status_Single": "Estado sentimental: Soltero/a"
 };
 
-const formatColumnName = (col: string): string => {
-  return columnTranslations[col] || col.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-};
-
-// Valores fijos que muestra cada factor (puedes ajustar a tus valores reales)
-const fixedValues: Record<string, number> = {
-  Age: 25,
-  Avg_Daily_Usage_Hours: 5,
-  Sleep_Hours_Per_Night: 7,
-  Mental_Health_Score: 6,
-  Conflicts_Over_Social_Media: 2,
-  Addicted_Score: 4,
-};
-
 // Unidades para cada factor
 const units: Record<string, string> = {
   Age: 'años',
@@ -227,6 +224,62 @@ const units: Record<string, string> = {
   Mental_Health_Score: 'puntos',
   Conflicts_Over_Social_Media: 'eventos',
   Addicted_Score: 'puntos',
+};
+
+// Mapeo de propiedades del perfil a nombres de columnas
+const propertyToColumnMap: Record<string, string> = {
+  'Age': 'Age',
+  'Avg_Daily_Usage_Hours': 'Avg_Daily_Usage_Hours',
+  'Mental_Health_Score': 'Mental_Health_Score',
+  'Sleep_Hours_Per_Night': 'Sleep_Hours_Per_Night',
+  'Addiction_Score': 'Addicted_Score',
+  'Conflicts_Over_Social_Media': 'Conflicts_Over_Social_Media'
+};
+
+// Validar si hay un perfil válido
+const hasValidProfile = computed(() => {
+  return userData.value !== null && validateUserData(userData.value);
+});
+
+// Función para validar los datos del usuario
+const validateUserData = (data: any): boolean => {
+  const requiredFields = [
+    'Age', 'Avg_Daily_Usage_Hours', 'Mental_Health_Score', 
+    'Sleep_Hours_Per_Night', 'Addiction_Score'
+  ];
+  
+  return requiredFields.every(field => 
+    data[field] !== undefined && 
+    data[field] !== null && 
+    !isNaN(Number(data[field]))
+  );
+};
+
+// Obtener valor del perfil del usuario
+const getUserDataValue = (col: string): string => {
+  if (!userData.value) return 'N/A';
+
+  const property = Object.entries(propertyToColumnMap).find(
+    ([_, column]) => column === col
+  )?.[0];
+
+  if (!property || userData.value[property] === undefined) return 'N/A';
+
+  const value = userData.value[property];
+
+  // Formatear valores según necesidad
+  if (col === 'Mental_Health_Score' || col === 'Addiction_Score') {
+    return value !== undefined ? value.toFixed(1) : 'N/A';
+  }
+  if (col === 'Avg_Daily_Usage_Hours' || col === 'Sleep_Hours_Per_Night') {
+    return value !== undefined ? `${value}` : 'N/A';
+  }
+
+  return value !== undefined ? value.toString() : 'N/A';
+};
+
+const formatColumnName = (col: string): string => {
+  return columnTranslations[col] || col.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
 };
 
 const toggleFeature = (feature: string) => {
@@ -249,21 +302,37 @@ const riskLevelColor = computed(() => {
 });
 
 const predict = async () => {
-  if (!isValid.value) return;
+  if (!isValid.value || !userData.value) return;
   isLoading.value = true;
   result.value = null;
   plotUrl.value = '';
+  
   try {
-    // Crear objeto features solo con los seleccionados y sus valores fijos
+    // Crear objeto features con los valores del perfil del usuario
     const featuresPayload: Record<string, number> = {};
-    selectedFeatures.value.forEach(f => {
-      featuresPayload[f] = fixedValues[f] ?? 0;
+    
+    selectedFeatures.value.forEach(feature => {
+      const property = Object.entries(propertyToColumnMap).find(
+        ([_, column]) => column === feature
+      )?.[0];
+      
+      if (property && userData.value && userData.value[property] !== undefined) {
+        featuresPayload[feature] = Number(userData.value[property]);
+      } else {
+        console.error(`No se encontró valor para ${feature} en los datos del usuario`);
+        featuresPayload[feature] = 0; // Valor por defecto si no existe
+      }
     });
-    const payload: LogisticInput = { features: featuresPayload, target: selectedTarget.value };
+
+    const payload: LogisticInput = { 
+      features: featuresPayload, 
+      target: selectedTarget.value 
+    };
+    
     result.value = await logisticService.predict(payload);
     plotUrl.value = await logisticService.getPlot();
   } catch (e) {
-    console.error(e);
+    console.error('Error en la predicción:', e);
   } finally {
     isLoading.value = false;
   }
@@ -274,6 +343,21 @@ const predictAndScroll = async () => {
   await nextTick();
   resultsSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
+
+// Cargar datos al montar el componente
+onMounted(async () => {
+  try {
+    // Cargar columnas disponibles del servicio
+    numericFeatures.value = await logisticService.getNumericFeatures();
+    binaryTargets.value = await logisticService.getBinaryTargets();
+    
+    // Cargar datos del perfil desde localStorage
+    profileStore.loadFromStorage();
+    
+  } catch (error) {
+    console.error('Error loading data:', error);
+  }
+});
 </script>
 
 <style scoped>
