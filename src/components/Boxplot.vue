@@ -1,8 +1,8 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 p-6">
-    <div class="mx-auto bg-white rounded-xl shadow-2xl overflow-hidden max-w-3xl transition-all duration-300 hover:shadow-3xl">
+    <div class="mx-auto bg-white rounded-xl shadow-2xl overflow-hidden transition-all duration-300 hover:shadow-3xl">
       <!-- Header con gradiente mejorado -->
-      <div class="bg-gradient-to-r from-indigo-600 via-indigo-700 to-indigo-800 p-6 text-white text-center">
+      <div class="bg-gradient-to-r from-indigo-600 via-indigo-700 to-indigo-800 p-6 text-white">
         <h2 class="text-3xl font-bold tracking-tight">Comparación con la distribución</h2>
         <p class="text-indigo-100 mt-2 opacity-90">Selecciona un parámetro para comparar tu valor con la población general</p>
       </div>
