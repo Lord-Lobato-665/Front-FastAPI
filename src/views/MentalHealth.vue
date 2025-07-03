@@ -4,7 +4,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import MentalHealthPrediction from '../components/MHPrediction.vue';
+import MentalHealthPrediction from '../components/MentalHealth/MHPrediction.vue';
 
 export default defineComponent({
   name: 'DataAnalysisView',
